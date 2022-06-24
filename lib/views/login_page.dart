@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_shared_preferences_login_app/constants/app_constants.dart';
 import 'package:flutter_shared_preferences_login_app/views/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 //? tf = textfield
 
@@ -16,6 +17,18 @@ class _LoginPageState extends State<LoginPage> {
   var tfSifreKontrol = TextEditingController();
 
   var scaffoldKey = GlobalKey<ScaffoldState>();
+  var formKey = GlobalKey<FormState>();
+
+  Future<void> girisKontrol() async {
+    var kullaniciAdi = tfKullaniciAdiKontol.text;
+    var sifre = tfSifreKontrol.text;
+
+    var sp = await SharedPreferences.getInstance();
+
+    sp.setString("kullaniciAdi", kullaniciAdi);
+    sp.setString("Sifre", sifre);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,25 +37,32 @@ class _LoginPageState extends State<LoginPage> {
         title: const Text('Giris Ekrani'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            kullaniciAdiTextField(),
-            sifreTextField(),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                  ),
-                );
-              },
-              child: const Text(
-                "Giris Yap",
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              kullaniciAdiTextField(),
+              sifreTextField(),
+              ElevatedButton(
+                onPressed: () {
+                  bool kontrolSonucu = formKey.currentState!.validate();
+                  if (kontrolSonucu) {
+                    girisKontrol();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HomePage(),
+                      ),
+                    );
+                  }
+                },
+                child: const Text(
+                  "Giris Yap",
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -51,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
   kullaniciAdiTextField() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: TextField(
+      child: TextFormField(
         controller: tfKullaniciAdiKontol,
         decoration: const InputDecoration(
           hintText: "Kullanici Adinizi Giriniz",
@@ -61,6 +81,15 @@ class _LoginPageState extends State<LoginPage> {
           prefixIcon: Icon(Icons.person),
           suffixIcon: Icon(Icons.edit),
         ),
+        validator: (girilenDeger) {
+          if (girilenDeger!.isEmpty) {
+            return "Kullanici Adi Bos Olamaz";
+          }
+          if (girilenDeger != "admin") {
+            return "Kullanici Adi Yanlis";
+          }
+          return null;
+        },
       ),
     );
   }
@@ -68,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
   sifreTextField() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: TextField(
+      child: TextFormField(
         controller: tfSifreKontrol,
         obscureText: true,
         decoration: const InputDecoration(
@@ -79,6 +108,15 @@ class _LoginPageState extends State<LoginPage> {
           prefixIcon: Icon(Icons.key),
           suffixIcon: Icon(Icons.password),
         ),
+        validator: (girilenDeger) {
+          if (girilenDeger!.isEmpty) {
+            return "Sifre Bos Olamaz";
+          }
+          if (girilenDeger != "123") {
+            return "Sifre Yanlis";
+          }
+          return null;
+        },
       ),
     );
   }
